@@ -80,7 +80,7 @@ class _FlipCardAnimationState extends State<FlipCardAnimation> with SingleTicker
                 // "Transform" allows to apply transformation to its child based on provided matrix
                 transform: Matrix4.identity()
                 // 3D transformation, without this the transformation will look like 2D flat
-                ..setEntry(3, 2, 0.001)
+                ..setEntry(3, 2, 0.001) // (setEntry(row, column, value) method allows you to manually tweak specific elements inside that 4x4 transformation matrix
                 // Rotates widget around Y-axis (horizontal flip) 0 - front view 3.14159 back view
                 ..rotateY(_animation.value * 3.14159),
                 // rotate child along with Y-axis
@@ -91,7 +91,7 @@ class _FlipCardAnimationState extends State<FlipCardAnimation> with SingleTicker
                         ? _builFronCard()
                         : Transform(
                           alignment: Alignment.center,
-                          transform: Matrix4.identity()..scale(-1.0, 1.0, 1.0),
+                          transform: Matrix4.identity()..scale(-1.0, 1.0, 1.0), // Transform.scale(x: -1.0) to avoid the back side would be flipped backward and the text would look mirrored.
                           child: _buildBackCard(), 
                         ),
                   // The flip animation goes from 0 to 1.
@@ -139,3 +139,23 @@ class _FlipCardAnimationState extends State<FlipCardAnimation> with SingleTicker
     );
   }
 }
+
+
+// Using Pi value for rotation here why
+// rotation angles in Flutter and most grahics porgramming are measure in radians not degree
+
+// Degree to Radians
+// 180° - π (3.14159...)
+// 360° -	2π (6.28318...)
+// 90° -	π/2 (≈1.5708)
+// 45° -	π/4 (≈0.7854)
+
+// Why Pi value is using, 
+// because we want the card rotate its halfway around Y-axis to show the back and front vice verse
+// Half circle is 180° and, 180° degrees = π radians
+
+// so animation value will look like this
+// _animation.value	 - Angle (Rotation)   -	Result
+// 0.0	-            0° (0 radians)       -	Card facing front.
+// 0.5	-            90° (π/2 radians)    -	Card sideways (edge view).
+// 1.0  -	           180° (π radians)     - Card showing back side.
