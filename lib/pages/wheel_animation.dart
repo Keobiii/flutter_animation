@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animation/data/wheel_random_prize.dart';
 import 'package:flutter_fortune_wheel/flutter_fortune_wheel.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -12,7 +13,7 @@ class WheelAnimation extends StatefulWidget {
 class _WheelAnimationState extends State<WheelAnimation> {
   final selected = BehaviorSubject<int>();
 
-  List<int> prizes = [100, 200, 300, 500, 1000, 2000, 5000];
+  List<int> prizes = PrizeManager.prizes;
   int rewards = 0;
 
   @override
@@ -38,15 +39,50 @@ class _WheelAnimationState extends State<WheelAnimation> {
                 animateFirst: false,
                 items: [
                   for (int i = 0; i < prizes.length; i++) ...<FortuneItem>{
-                    FortuneItem(child: Text(prizes[i].toString())),
+                    FortuneItem(
+                      child: Text(
+                        prizes[i].toString(),
+                        // style: TextStyle(
+                        //   fontSize: 24,
+                        //   fontWeight: FontWeight.bold,
+                        //   color: Colors.white,
+                        // ),
+                      ),
+                      // FortuneItemStyle
+                      style: FortuneItemStyle(
+                        color: i % 2 == 0 ? Colors.blue : Colors.redAccent,
+                        borderColor: Colors.white,
+                        borderWidth: 2,
+                      ),
+                    ),
                   },
                 ],
+
+                // Customize spin physics
+                // physics: CircularPanPhysics(
+                //   duration: Duration(seconds: 8),
+                //   curve: Curves.decelerate,
+                // ),
+                // Customize indicator
+                // indicators: <FortuneIndicator>[
+                //   FortuneIndicator(
+                //     alignment: Alignment.topCenter,
+                //     child: Icon(
+                //       Icons.arrow_drop_down,
+                //       size: 40,
+                //       color: Colors.red,
+                //     ),
+                //   ),
+                // ],
                 onAnimationEnd: () {
                   setState(() {
                     rewards = prizes[selected.value];
                   });
 
                   print('You won ${rewards}!');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('You just won ${rewards}')),
+                  );
                 },
               ),
             ),
@@ -54,18 +90,19 @@ class _WheelAnimationState extends State<WheelAnimation> {
             GestureDetector(
               onTap: () {
                 setState(() {
-                  selected.add(Fortune.randomInt(0, prizes.length));
+                  int prize = PrizeManager.getRandomPrize();
+                  int index = prizes.indexOf(prize);
+
+                  selected.add(index);
                 });
               },
               child: Container(
                 height: 40,
                 width: 120,
                 color: Colors.redAccent,
-                child: Center(
-                  child: Text('Spin'),
-                ),
+                child: Center(child: Text('Spin')),
               ),
-            )
+            ),
           ],
         ),
       ),
