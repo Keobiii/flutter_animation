@@ -4,7 +4,7 @@ class PrizeManager {
   static List<int> prizes = [0, 100, 200, 300, 500, 1000];
 
   static int getRandomPrize() {
-    final random = Fortune.randomInt(0, 1000); // Random number from 0 to 999
+    final random = Fortune.randomInt(0, 1000);
     
     if (random < 900) {
       return prizes[0]; // 0
