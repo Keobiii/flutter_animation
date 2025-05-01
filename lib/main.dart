@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animation/pages/coin_flip_animation.dart';
+import 'package:flutter_animation/pages/coins_flip.dart';
 import 'package:flutter_animation/pages/flip_card_animation.dart';
+import 'package:flutter_animation/pages/menu_animation.dart';
 import 'package:flutter_animation/pages/wheel_animation.dart';
 
 void main() {
@@ -18,7 +20,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: CoinFlipAnimation(),
+      home: CoinsFlip(),
     );
   }
 }

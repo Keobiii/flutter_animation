@@ -24,9 +24,10 @@ class _CoinFlipAnimationState extends State<CoinFlipAnimation>
       vsync: this,
     );
 
-    _animation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _animation = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   void _toggleCard() {
@@ -61,16 +62,18 @@ class _CoinFlipAnimationState extends State<CoinFlipAnimation>
 
               return Transform(
                 alignment: Alignment.center,
-                transform: Matrix4.identity()
-                  ..setEntry(3, 2, 0.001)
-                  ..rotateX(angle),
-                child: isFrontVisible
-                    ? _buildCoinImage('assets/images/front.png')
-                    : Transform(
-                        alignment: Alignment.center,
-                        transform: Matrix4.identity()..scale(1.0, -1.0),
-                        child: _buildCoinImage('assets/images/pog1.png'),
-                      ),
+                transform:
+                    Matrix4.identity()
+                      ..setEntry(3, 2, 0.001)
+                      ..rotateX(angle),
+                child:
+                    isFrontVisible
+                        ? _buildCoinImage('assets/images/front.png')
+                        : Transform(
+                          alignment: Alignment.center,
+                          transform: Matrix4.identity()..scale(1.0, -1.0),
+                          child: _buildCoinImage('assets/images/pog1.png'),
+                        ),
               );
             },
           ),
@@ -87,12 +90,7 @@ class _CoinFlipAnimationState extends State<CoinFlipAnimation>
         shape: BoxShape.circle,
         boxShadow: [BoxShadow(blurRadius: 4, color: Colors.black26)],
       ),
-      child: ClipOval(
-        child: Image.asset(
-          assetPath,
-          fit: BoxFit.cover,
-        ),
-      ),
+      child: ClipOval(child: Image.asset(assetPath, fit: BoxFit.cover)),
     );
   }
 }
