@@ -67,6 +67,7 @@ flutter:
     - assets/images/pog1.png
     - assets/images/pog2.png
     - assets/images/equalizer.png
+    - assets/images/coin.png
     - assets/images/chips/
   #   - images/a_dot_ham.jpeg
 
