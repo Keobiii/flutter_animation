@@ -131,7 +131,7 @@ class _CoinCollectAnimationState extends State<CoinCollectAnimation>
     return Scaffold(
       body: Stack(
         children: [
-          if (showCoins) ...List.generate(coinCount, buildCoin),
+          
           Center(
             child: Container(
               key: containerKey,
@@ -146,6 +146,8 @@ class _CoinCollectAnimationState extends State<CoinCollectAnimation>
               ),
             ),
           ),
+
+          if (showCoins) ...List.generate(coinCount, buildCoin),
         ],
       ),
     );
