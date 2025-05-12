@@ -162,7 +162,8 @@ import 'package:flutter/material.dart';
 
 // This class holds all animations and controllers for a single coin
 class CoinAnimation {
-  final Animation<Offset> positionAnimation; // controls movement from container to top
+  final Animation<Offset>
+  positionAnimation; // controls movement from container to top
   final Animation<double> scaleAnimation; // controls spawn scale (grow effect)
   final AnimationController positionController; // controller for movement
   final AnimationController scaleController; // controller for scaling
@@ -180,12 +181,19 @@ class CoinSpawner extends StatefulWidget {
   _CoinSpawnerState createState() => _CoinSpawnerState();
 }
 
-class _CoinSpawnerState extends State<CoinSpawner> with TickerProviderStateMixin {
+class _CoinSpawnerState extends State<CoinSpawner>
+    with TickerProviderStateMixin {
   final GlobalKey _containerKey = GlobalKey();
   final Random random = Random();
   List<CoinAnimation> coinAnimations = [];
 
+  final GlobalKey _coinTargetKey = GlobalKey();
+
   void spawnCoins() {
+    final RenderBox targetBox =
+        _coinTargetKey.currentContext!.findRenderObject() as RenderBox;
+    final Offset targetPosition = targetBox.localToGlobal(Offset.zero);
+
     // Get the position and size of the container
     final RenderBox renderBox =
         _containerKey.currentContext!.findRenderObject() as RenderBox;
@@ -223,7 +231,11 @@ class _CoinSpawnerState extends State<CoinSpawner> with TickerProviderStateMixin
         Offset start = Offset(baseX + spread, baseY + random.nextDouble() * 20);
 
         // animate to the top of the screen (top-right area)
-        Offset end = Offset(screenSize.width - 50.0, 40.0 + i * 2);
+        // Offset end = Offset(screenSize.width - 50.0, 40.0 + i * 2);
+        Offset end = Offset(
+          targetPosition.dx + targetBox.size.width / 2 - 16, // center the coin
+          targetPosition.dy + targetBox.size.height / 2 - 16,
+        );
 
         // controller for moving the coin to the top
         final positionController = AnimationController(
@@ -232,13 +244,9 @@ class _CoinSpawnerState extends State<CoinSpawner> with TickerProviderStateMixin
         );
 
         // animation that moves the coin from start to end
-        final positionAnimation = Tween<Offset>(
-          begin: start,
-          end: end,
-        ).animate(CurvedAnimation(
-          parent: positionController,
-          curve: Curves.easeInOut,
-        ));
+        final positionAnimation = Tween<Offset>(begin: start, end: end).animate(
+          CurvedAnimation(parent: positionController, curve: Curves.easeInOut),
+        );
 
         // controller for scaling the coin when it spawns
         final scaleController = AnimationController(
@@ -274,8 +282,9 @@ class _CoinSpawnerState extends State<CoinSpawner> with TickerProviderStateMixin
               // check the index of each coin in the list
               // if they’re done animating then remove it
               // making them disappear
-              coinAnimations.removeWhere((coin) =>
-                  coin.positionController == positionController);
+              coinAnimations.removeWhere(
+                (coin) => coin.positionController == positionController,
+              );
             });
             positionController.dispose();
             scaleController.dispose();
@@ -283,12 +292,14 @@ class _CoinSpawnerState extends State<CoinSpawner> with TickerProviderStateMixin
         });
 
         // add the coin to the animation list
-        coinAnimations.add(CoinAnimation(
-          positionAnimation: positionAnimation,
-          scaleAnimation: scaleAnimation,
-          positionController: positionController,
-          scaleController: scaleController,
-        ));
+        coinAnimations.add(
+          CoinAnimation(
+            positionAnimation: positionAnimation,
+            scaleAnimation: scaleAnimation,
+            positionController: positionController,
+            scaleController: scaleController,
+          ),
+        );
       }
     });
   }
@@ -305,6 +316,25 @@ class _CoinSpawnerState extends State<CoinSpawner> with TickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        title: Text('Collect Coins'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Container(
+              key: _coinTargetKey,
+              child: Image.asset(
+                'assets/images/coin.png',
+                width: 32,
+                height: 32,
+              ),
+            ),
+          ),
+        ],
+      ),
       body: Stack(
         children: [
           Center(
