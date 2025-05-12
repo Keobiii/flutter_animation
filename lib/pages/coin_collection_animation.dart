@@ -131,7 +131,7 @@ import 'package:flutter/material.dart';
 //     return Scaffold(
 //       body: Stack(
 //         children: [
-          
+
 //           Center(
 //             child: Container(
 //               key: containerKey,
@@ -154,34 +154,152 @@ import 'package:flutter/material.dart';
 //   }
 // }
 
+import 'dart:math';
+import 'package:flutter/material.dart';
+
+import 'dart:math';
+import 'package:flutter/material.dart';
+
+// This class holds all animations and controllers for a single coin
+class CoinAnimation {
+  final Animation<Offset> positionAnimation; // controls movement from container to top
+  final Animation<double> scaleAnimation; // controls spawn scale (grow effect)
+  final AnimationController positionController; // controller for movement
+  final AnimationController scaleController; // controller for scaling
+
+  CoinAnimation({
+    required this.positionAnimation,
+    required this.scaleAnimation,
+    required this.positionController,
+    required this.scaleController,
+  });
+}
 
 class CoinSpawner extends StatefulWidget {
   @override
   _CoinSpawnerState createState() => _CoinSpawnerState();
 }
 
-class _CoinSpawnerState extends State<CoinSpawner> {
+class _CoinSpawnerState extends State<CoinSpawner> with TickerProviderStateMixin {
   final GlobalKey _containerKey = GlobalKey();
   final Random random = Random();
-  List<Offset> coinPositions = [];
+  List<CoinAnimation> coinAnimations = [];
 
   void spawnCoins() {
     // Get the position and size of the container
     final RenderBox renderBox =
         _containerKey.currentContext!.findRenderObject() as RenderBox;
+
+    // this sets the container position to the top left of the container
     final containerPosition = renderBox.localToGlobal(Offset.zero);
+
+    // this is used to get the size of the container (width/height)
     final containerSize = renderBox.size;
 
+    // Move right half the width
     final double baseX = containerPosition.dx + containerSize.width / 2;
+    // Move down the full height
     final double baseY = containerPosition.dy + containerSize.height;
+
+    // dx is how far the box is from the left of the screen
+    // dy is how far the box is from the top of the screen
+
+    // dispose old controllers if any
+    for (final coin in coinAnimations) {
+      coin.positionController.dispose();
+      coin.scaleController.dispose();
+    }
+    coinAnimations.clear();
+
+    final screenSize = MediaQuery.of(context).size;
 
     setState(() {
       // Generate 10 coins slightly spread below the container
-      coinPositions = List.generate(10, (_) {
-        double spread = random.nextDouble() * 100 - 50; // range: -50 to +50
-        return Offset(baseX + spread, baseY + random.nextDouble() * 20);
-      });
+      for (int i = 0; i < 10; i++) {
+        // generate random number from -50 to +50
+        double spread = random.nextDouble() * 100 - 50;
+
+        // then randomly spawn coins based on the spread random numbers inside the container
+        Offset start = Offset(baseX + spread, baseY + random.nextDouble() * 20);
+
+        // animate to the top of the screen (top-right area)
+        Offset end = Offset(screenSize.width - 50.0, 40.0 + i * 2);
+
+        // controller for moving the coin to the top
+        final positionController = AnimationController(
+          vsync: this,
+          duration: Duration(milliseconds: 800 + random.nextInt(300)),
+        );
+
+        // animation that moves the coin from start to end
+        final positionAnimation = Tween<Offset>(
+          begin: start,
+          end: end,
+        ).animate(CurvedAnimation(
+          parent: positionController,
+          curve: Curves.easeInOut,
+        ));
+
+        // controller for scaling the coin when it spawns
+        final scaleController = AnimationController(
+          vsync: this,
+          duration: Duration(milliseconds: 300), // quick grow animation
+        );
+
+        // animation that grows the coin from 0% to 100%
+        final scaleAnimation = CurvedAnimation(
+          parent: scaleController,
+          curve: Curves.easeOutBack, // adds bounce effect
+        );
+
+        // play the scale animation immediately (spawn effect)
+        scaleController.forward();
+
+        // Add delay when going to the top right
+        Future.delayed(Duration(seconds: 2), () {
+          positionController.forward(); // start fly-up after delay
+        });
+
+        // Remove the coin when animation completes
+        positionController.addStatusListener((status) {
+          /*
+            Types of Animation Listener
+            AnimationStatus.forward → animation is running forward
+            AnimationStatus.completed → animation has finished
+            AnimationStatus.dismissed → animation is reset to start
+            AnimationStatus.reverse → animation is running in reverse
+          */
+          if (status == AnimationStatus.completed) {
+            setState(() {
+              // check the index of each coin in the list
+              // if they’re done animating then remove it
+              // making them disappear
+              coinAnimations.removeWhere((coin) =>
+                  coin.positionController == positionController);
+            });
+            positionController.dispose();
+            scaleController.dispose();
+          }
+        });
+
+        // add the coin to the animation list
+        coinAnimations.add(CoinAnimation(
+          positionAnimation: positionAnimation,
+          scaleAnimation: scaleAnimation,
+          positionController: positionController,
+          scaleController: scaleController,
+        ));
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    for (final coin in coinAnimations) {
+      coin.positionController.dispose();
+      coin.scaleController.dispose();
+    }
+    super.dispose();
   }
 
   @override
@@ -203,15 +321,24 @@ class _CoinSpawnerState extends State<CoinSpawner> {
               ),
             ),
           ),
-          ...coinPositions.map((pos) {
-            return Positioned(
-              left: pos.dx,
-              top: pos.dy,
-              child: Image.asset(
-                'assets/images/coin.png',
-                width: 32,
-                height: 32,
-              ),
+          // Render each coin with scale and position animations
+          ...coinAnimations.map((coin) {
+            return AnimatedBuilder(
+              animation: coin.positionAnimation,
+              builder: (context, child) {
+                return Positioned(
+                  left: coin.positionAnimation.value.dx,
+                  top: coin.positionAnimation.value.dy,
+                  child: ScaleTransition(
+                    scale: coin.scaleAnimation,
+                    child: Image.asset(
+                      'assets/images/coin.png',
+                      width: 32,
+                      height: 32,
+                    ),
+                  ),
+                );
+              },
             );
           }).toList(),
         ],
