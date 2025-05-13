@@ -223,9 +223,11 @@ class _CoinSpawnerState extends State<CoinSpawner>
 
     setState(() {
       // Generate 10 coins slightly spread below the container
-      for (int i = 0; i < 10; i++) {
+      for (int i = 0; i < 5; i++) {
         // generate random number from -50 to +50
-        double spread = random.nextDouble() * 100 - 50;
+        // double spread = random.nextDouble() * 100 - 50;
+        double spread =
+            (random.nextDouble() * 100 - 50) * 0.5; // Scaling down the spread
 
         // then randomly spawn coins based on the spread random numbers inside the container
         Offset start = Offset(baseX + spread, baseY + random.nextDouble() * 20);
